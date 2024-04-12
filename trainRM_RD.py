@@ -9,8 +9,8 @@ from utils.functions import (
     cal_loss,
     cal_anomaly_maps,
 )
-from models.resnetRM import wide_resnet50_2,resnet18
-from models.de_resnetRM import de_resnet18,de_wide_resnet50_2
+from models.RD.teacherRD import wide_resnet50_2,resnet18
+from models.RD.de_resnetRM import de_resnet18,de_wide_resnet50_2
 
 
 class NetTrainer:          
@@ -63,8 +63,8 @@ class NetTrainer:
         self.val_loader = torch.utils.data.DataLoader(val_data, batch_size=self.batch_size, shuffle=True, **kwargs)
 
     
-        self.train_normality_loader = torch.utils.data.DataLoader(train_data, batch_size=self.n_embed, shuffle=True, **kwargs)
-        self.val_normality_loader = torch.utils.data.DataLoader(val_data, batch_size=self.n_embed, shuffle=True, **kwargs)
+        self.train_examplar_loader = torch.utils.data.DataLoader(train_data, batch_size=self.n_embed, shuffle=True, **kwargs)
+        self.val_examplar_loader = torch.utils.data.DataLoader(val_data, batch_size=self.n_embed, shuffle=True, **kwargs)
 
 
     def load_model(self):
@@ -97,12 +97,13 @@ class NetTrainer:
         
         for _ in range(1, self.num_epochs + 1):
             losses = AverageMeter()
-            for (image,_, _),(imageEmbed,_,_) in zip(self.train_loader, self.train_normality_loader):
+            for (image,_, _),(imageExamplar,_,_) in zip(self.train_loader, self.train_examplar_loader):
                 image= image.to(self.device)
+                imageExamplar= imageExamplar.to(self.device)
                 self.optimizer.zero_grad()
                 with torch.set_grad_enabled(True):
 
-                    features_s,features_t  = self.infer(image) 
+                    features_s,features_t  = self.infer(image,imageExamplar) 
                     
                     loss=cal_loss(features_s, features_t)
                     
@@ -130,11 +131,12 @@ class NetTrainer:
     def val(self, epoch_bar):
         self.student.eval()
         losses = AverageMeter()
-        for (image,_, _),(imageEmbed,_,_) in zip(self.val_loader,self.val_normality_loader):
+        for (image,_, _),(imageExamplar,_,_) in zip(self.val_loader,self.val_examplar_loader):
             image= image.to(self.device)
+            imageExamplar= imageExamplar.to(self.device)
             with torch.set_grad_enabled(False):
                 
-                features_s,features_t  = self.infer(image)  
+                features_s,features_t  = self.infer(image,imageExamplar)  
 
                 loss=cal_loss(features_s, features_t)
                 
@@ -144,6 +146,7 @@ class NetTrainer:
         return losses.avg
 
     def save_checkpoint(self):
+        # TODO save bn model also
         state = {"model": self.student.state_dict()}
         torch.save(state, os.path.join(self.model_dir, "student.pth"))
 
@@ -174,7 +177,10 @@ class NetTrainer:
             
             image = image.to(self.device)
             with torch.set_grad_enabled(False):
-                features_s, features_t = self.infer(image)  
+                #features_s, features_t = self.infer(image)  
+                features_t = self.teacher(image)
+                embed=self.bn(features_t)
+                features_s=self.student(embed)
                 
                 score =cal_anomaly_maps(features_s,features_t,self.img_cropsize) 
                 
@@ -189,10 +195,19 @@ class NetTrainer:
 
         return img_roc_auc
     
-    def infer(self, img):
+    def infer(self, img,imgExamplar):
+        
+        # ! Normality embedding : call memory modules from the student to extract Normality embedding
+        features_t_examplar = self.teacher(imgExamplar)
+        features_t_examplar_norm=[self.student.memory1(features_t_examplar[0]),
+                                  self.student.memory2(features_t_examplar[1]),
+                                  self.student.memory3(features_t_examplar[2])]
+        # ! End Normality embedding
+        #! Normality recall and distillation
         features_t = self.teacher(img)
         embed=self.bn(features_t)
         features_s=self.student(embed)
+        
         return features_s,features_t
 
 if __name__ == "__main__":

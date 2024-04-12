@@ -11,25 +11,32 @@ class memoryModule(nn.Module):
         
         self.cosSim = nn.CosineSimilarity(dim=1, eps=1e-6)
         self.softmax = nn.Softmax(dim=1)
+        self.channel=channel
     
     # Input of size (b,C,H,W) 
-    def forward(self, x: Tensor) -> Tensor:
+    def forward(self, x: Tensor,normality=False) -> Tensor:
         b,c,h,w=x.size()
-
         x=x.view(x.size(0),x.size(1),-1).permute(0,2,1)
-
-        keysAct = self.keys.unsqueeze(0).expand(x.size(0), -1, -1)
-
-        norm_keys = F.normalize(keysAct, p=2, dim=2)
-        norm_x = F.normalize(x, p=2, dim=2)
-        print()
-        cos_sim = torch.matmul(norm_keys.unsqueeze(2), norm_x.transpose(1, 2).unsqueeze(1)).squeeze(2)
-
-        sim_vec=self.softmax(cos_sim)
-
-        valuesAct = self.values.unsqueeze(0).expand(x.size(0), -1, -1)
+        
+        if (normality==False):
+            #! The softmax is computed with the keys
+            keysAct = self.keys.unsqueeze(0).expand(x.size(0), -1, -1)
+            norm_keys = F.normalize(keysAct, p=2, dim=2)
+            norm_x = F.normalize(x, p=2, dim=2)
+            cos_sim = torch.matmul(norm_keys.unsqueeze(2), norm_x.transpose(1, 2).unsqueeze(1)).squeeze(2)
+            sim_vec=self.softmax(cos_sim)
+            valuesAct = self.values.unsqueeze(0).expand(x.size(0), -1, -1)
+        else : 
+            #! The softmax is computed with the values
+            valuesAct = self.values.unsqueeze(0).expand(x.size(0), -1, -1)
+            norm_values = F.normalize(valuesAct, p=2, dim=2)
+            norm_x = F.normalize(x, p=2, dim=2)
+            cos_sim = torch.matmul(norm_values.unsqueeze(2), norm_x.transpose(1, 2).unsqueeze(1)).squeeze(2)
+            sim_vec=self.softmax(cos_sim)
+        
         Fnorm=torch.matmul(sim_vec.permute(0,2,1), valuesAct)
-        Fr=Fnorm.permute(0,2,1).view(b,128,h,w)
+        Fr=Fnorm.permute(0,2,1).view(b,self.channel,h,w)    
+            
         return Fr # for the loss Orth calculation
     
 
