@@ -1,0 +1,15 @@
+data_path: "../../datasets/SingleNetDatasets"
+backbone: resnet18
+obj: wood
+phase: train
+save_path: "./results"
+TrainingData:
+  epochs: 50
+  batch_size: 16
+  lr: 0.005
+  img_size: 256
+  crop_size: 256
+  embedDim: 50 # L in paper
+  n_embed: 16 # N in paper
+  lambda1: 0.1
+  lambda2: 0.1
