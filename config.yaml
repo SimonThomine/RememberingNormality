@@ -1,5 +1,5 @@
-data_path: "../../datasets/SingleNetDatasets"
-backbone: resnet18
+data_path: "../../datasets/MVTEC"
+backbone: resnet18 # or wide_resnet50_2
 obj: wood
 phase: train
 save_path: "./results"
