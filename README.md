@@ -56,7 +56,7 @@ To modify the object categories or hyperparameters, you can modify the config.ya
 
 ## List of TODOs
 
-- [ ] Implement cosine similarity for score calculation
+- [x] Implement cosine similarity for score calculation
 - [x] Implement RD
 - [ ] Implement VisA, MVTec 3D-AD and eyecandies datasets
 - [ ] Implement visualisation

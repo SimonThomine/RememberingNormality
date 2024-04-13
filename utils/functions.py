@@ -46,21 +46,16 @@ def cal_loss_orth(student,rd=False):
         t_loss += cos_sim.sum()/key.size(0)**2
     return t_loss
 
-
 @torch.no_grad()
 def cal_anomaly_maps(fs_list, ft_list, out_size):
     anomaly_map = 0
     for i in range(len(ft_list)):
         fs = fs_list[i]
         ft = ft_list[i]
+        _, _, h, w = fs.shape
         fs_norm = F.normalize(fs, p=2)
         ft_norm = F.normalize(ft, p=2)
-
-        _, _, h, w = fs.shape
-
-        a_map = (0.5 * (ft_norm - fs_norm) ** 2) / (h * w)
-
-        a_map = a_map.sum(1, keepdim=True)
+        a_map = ((1 - F.cosine_similarity(fs_norm, ft_norm))/ (h * w)).unsqueeze(0)
 
         a_map = F.interpolate(
             a_map, size=out_size, mode="bilinear", align_corners=False
@@ -71,4 +66,3 @@ def cal_anomaly_maps(fs_list, ft_list, out_size):
         anomaly_map[i] = gaussian_filter(anomaly_map[i], sigma=4)
 
     return anomaly_map
-

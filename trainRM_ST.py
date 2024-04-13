@@ -9,7 +9,7 @@ from utils.functions import (
     cal_loss,
     cal_loss_cosine,
     cal_loss_orth,
-    cal_anomaly_maps,
+    cal_anomaly_maps
 )
 from models.ST.teacherST import wide_resnet50_2,resnet18
 from models.ST.resnetRM import resnet18Memory,wide_resnet50_2Memory
