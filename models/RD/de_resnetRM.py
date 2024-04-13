@@ -39,9 +39,8 @@ class ResNet(nn.Module):
         self.layer3 = self._make_layer(block, 64, layers[2], stride=2,
                                        dilate=replace_stride_with_dilation[1])
         # ! NEW
-        self.memory1 = memoryModule(L=embedDim,channel=64)
+        self.memory1 = memoryModule(L=embedDim,channel=256)
         self.memory2=  memoryModule(L=embedDim,channel=128)
-        self.memory3=  memoryModule(L=embedDim,channel=256)
         # ! FIN NEW
 
         for m in self.modules():
@@ -60,6 +59,7 @@ class ResNet(nn.Module):
 
     def _make_layer(self, block: Type[Union[deBasicBlock, deBottleneck]], planes: int, blocks: int,
                     stride: int = 1, dilate: bool = False) -> nn.Sequential:
+        inplanes=self.inplanes*2 if self.inplanes!=512 else self.inplanes # add this *2
         norm_layer = self._norm_layer
         upsample = None
         previous_dilation = self.dilation
@@ -68,12 +68,12 @@ class ResNet(nn.Module):
             stride = 1
         if stride != 1 or self.inplanes != planes * block.expansion:
             upsample = nn.Sequential(
-                deconv2x2(self.inplanes, planes * block.expansion, stride),
+                deconv2x2(inplanes, planes * block.expansion, stride),
                 norm_layer(planes * block.expansion),
             )
 
         layers = []
-        layers.append(block(self.inplanes, planes, stride, upsample, self.groups,
+        layers.append(block(inplanes, planes, stride, upsample, self.groups,
                             self.base_width, previous_dilation, norm_layer))
         self.inplanes = planes * block.expansion
         for _ in range(1, blocks):
@@ -85,10 +85,14 @@ class ResNet(nn.Module):
 
     def _forward_impl(self, x: Tensor) -> Tensor:
         feature_a = self.layer1(x)  # 512*8*8->256*16*16
-        feature_b = self.layer2(feature_a)  # 256*16*16->128*32*32
-        memory= self.memory1(feature_b) # ! Test
-        feature_c = self.layer3(feature_b)  # 128*32*32->64*64*64
-        #feature_d = self.layer4(feature_c)  # 64*64*64->128*32*32
+        feature_mem_a = self.memory1(feature_a)
+        feature_a_cat=torch.cat((feature_a,feature_mem_a),1)
+        
+        feature_b = self.layer2(feature_a_cat)  # 256*16*16->128*32*32
+        feature_mem_b = self.memory2(feature_b)
+        feature_b_cat=torch.cat((feature_b,feature_mem_b),1)
+        
+        feature_c = self.layer3(feature_b_cat)  # 128*32*32->64*64*64
 
         return [feature_c, feature_b, feature_a]
 

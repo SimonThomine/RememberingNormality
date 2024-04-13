@@ -26,12 +26,10 @@ class NetTrainer:
         self.num_epochs = data['TrainingData']['epochs']
         self.lr = data['TrainingData']['lr']
         self.batch_size = data['TrainingData']['batch_size'] 
-        # ! New Remembering normality
         self.embedDim = data['TrainingData']['embedDim']
         self.n_embed = data['TrainingData']['n_embed']
         self.lambda1 = data['TrainingData']['lambda1']
         self.lambda2 = data['TrainingData']['lambda1']
-        #! end New  
         self.model_dir = data['save_path'] + "/models" + "/" + self.obj
         os.makedirs(self.model_dir, exist_ok=True)
         self.modelName = data['backbone']
@@ -187,7 +185,6 @@ class NetTrainer:
             
             image = image.to(self.device)
             with torch.set_grad_enabled(False):
-                #features_s, features_t = self.infer(image)  
                 features_t = self.teacher(image)
                 features_s=self.student(image)
                 
@@ -206,19 +203,14 @@ class NetTrainer:
     
     def infer(self, img,imgExamplar):
         
-        # ! Normality embedding : call memory modules from the student to extract Normality embedding
         features_t_examplar = self.teacher.forward_normality_embedding(imgExamplar)
         features_t_examplar_norm=[self.student.memory0(features_t_examplar[0]),
                                   self.student.memory1(features_t_examplar[1]),
                                   self.student.memory2(features_t_examplar[2])]
-        # ! End Normality embedding
-        #! Normality recall and distillation
+
         features_t = self.teacher(img)
         features_s=self.student(img)
-        
-        # TODO for loss must compare features_t_examplar and features_t_examplar_norm for loss NM (L2 loss)
-        #TODO  then features_t and features_s for loss distillation (cosine Sim)
-        # TODO then keys and value from the memory modules for the loss Orth (cosine Sim)
+
         return features_s,features_t ,features_t_examplar,features_t_examplar_norm
 
 if __name__ == "__main__":

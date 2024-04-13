@@ -19,7 +19,7 @@ class memoryModule(nn.Module):
         x=x.view(x.size(0),x.size(1),-1).permute(0,2,1)
         
         if (normality==False):
-            #! The softmax is computed with the keys
+            # The softmax is computed with the keys
             keysAct = self.keys.unsqueeze(0).expand(x.size(0), -1, -1)
             norm_keys = F.normalize(keysAct, p=2, dim=2)
             norm_x = F.normalize(x, p=2, dim=2)
@@ -27,7 +27,7 @@ class memoryModule(nn.Module):
             sim_vec=self.softmax(cos_sim)
             valuesAct = self.values.unsqueeze(0).expand(x.size(0), -1, -1)
         else : 
-            #! The softmax is computed with the values
+            # The softmax is computed with the values
             valuesAct = self.values.unsqueeze(0).expand(x.size(0), -1, -1)
             norm_values = F.normalize(valuesAct, p=2, dim=2)
             norm_x = F.normalize(x, p=2, dim=2)
@@ -37,7 +37,7 @@ class memoryModule(nn.Module):
         Fnorm=torch.matmul(sim_vec.permute(0,2,1), valuesAct)
         Fr=Fnorm.permute(0,2,1).view(b,self.channel,h,w)    
             
-        return Fr # for the loss Orth calculation
+        return Fr
     
 
 

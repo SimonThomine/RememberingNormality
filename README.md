@@ -31,7 +31,7 @@ With STPM backbone ([Article](https://arxiv.org/pdf/2103.04257v2.pdf))
 ```
 python trainRM_ST.py  
 ```
-With RD backbone ([Article1](https://arxiv.org/pdf/2201.10703.pdf)) (not functionnal yet)
+With RD backbone ([Article1](https://arxiv.org/pdf/2201.10703.pdf))
 ```
 python trainRM_RD.py  
 ```
@@ -57,7 +57,7 @@ To modify the object categories or hyperparameters, you can modify the config.ya
 ## List of TODOs
 
 - [ ] Implement cosine similarity for score calculation
-- [ ] Implement RD
+- [x] Implement RD
 - [ ] Implement VisA, MVTec 3D-AD and eyecandies datasets
 - [ ] Implement visualisation
 

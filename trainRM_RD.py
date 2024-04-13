@@ -7,6 +7,8 @@ from datasets.mvtec import MVTecDataset
 from utils.util import  AverageMeter,readYamlConfig,computeAUROC,loadWeights
 from utils.functions import (
     cal_loss,
+    cal_loss_cosine,
+    cal_loss_orth,
     cal_anomaly_maps,
 )
 from models.RD.teacherRD import wide_resnet50_2,resnet18
@@ -24,12 +26,10 @@ class NetTrainer:
         self.num_epochs = data['TrainingData']['epochs']
         self.lr = data['TrainingData']['lr']
         self.batch_size = data['TrainingData']['batch_size'] 
-        # ! New Remembering normality
         self.embedDim = data['TrainingData']['embedDim']
         self.n_embed = data['TrainingData']['n_embed']
         self.lambda1 = data['TrainingData']['lambda1']
         self.lambda2 = data['TrainingData']['lambda1']
-        #! end New  
         self.model_dir = data['save_path'] + "/models" + "/" + self.obj
         os.makedirs(self.model_dir, exist_ok=True)
         self.modelName = data['backbone']
@@ -103,9 +103,13 @@ class NetTrainer:
                 self.optimizer.zero_grad()
                 with torch.set_grad_enabled(True):
 
-                    features_s,features_t  = self.infer(image,imageExamplar) 
+                    features_s,features_t,features_t_examplar,features_t_examplar_norm  = self.infer(image,imageExamplar) 
                     
-                    loss=cal_loss(features_s, features_t)
+                    loss_KD=cal_loss_cosine(features_s, features_t)
+                    loss_NM=cal_loss(features_t_examplar, features_t_examplar_norm)
+                    loss_ORTH=cal_loss_orth(self.student,rd=True)
+                    
+                    loss=loss_KD+self.lambda1*loss_NM +self.lambda2*loss_ORTH 
                     
                     losses.update(loss.sum().item(), image.size(0))
                     loss.backward()
@@ -136,9 +140,14 @@ class NetTrainer:
             imageExamplar= imageExamplar.to(self.device)
             with torch.set_grad_enabled(False):
                 
-                features_s,features_t  = self.infer(image,imageExamplar)  
-
-                loss=cal_loss(features_s, features_t)
+                features_s,features_t,features_t_examplar,features_t_examplar_norm  = self.infer(image,imageExamplar)  
+                
+                
+                loss_KD=cal_loss_cosine(features_s, features_t)
+                loss_NM=cal_loss(features_t_examplar, features_t_examplar_norm)
+                loss_ORTH=cal_loss_orth(self.student,rd=True)
+                    
+                loss=loss_KD+self.lambda1*loss_NM +self.lambda2*loss_ORTH 
                 
                 losses.update(loss.item(), image.size(0))
         epoch_bar.set_postfix({"Loss": loss.item()})
@@ -146,15 +155,17 @@ class NetTrainer:
         return losses.avg
 
     def save_checkpoint(self):
-        # TODO save bn model also
         state = {"model": self.student.state_dict()}
         torch.save(state, os.path.join(self.model_dir, "student.pth"))
+        state = {"model": self.bn.state_dict()}
+        torch.save(state, os.path.join(self.model_dir, "bn.pth"))
 
 
     @torch.no_grad()
     def test(self):
 
         self.student=loadWeights(self.student,self.model_dir,"student.pth")
+        self.bn=loadWeights(self.bn,self.model_dir,"bn.pth")
         
         kwargs = (
             {"num_workers": 4, "pin_memory": True} if torch.cuda.is_available() else {}
@@ -177,7 +188,7 @@ class NetTrainer:
             
             image = image.to(self.device)
             with torch.set_grad_enabled(False):
-                #features_s, features_t = self.infer(image)  
+                
                 features_t = self.teacher(image)
                 embed=self.bn(features_t)
                 features_s=self.student(embed)
@@ -197,18 +208,16 @@ class NetTrainer:
     
     def infer(self, img,imgExamplar):
         
-        # ! Normality embedding : call memory modules from the student to extract Normality embedding
         features_t_examplar = self.teacher(imgExamplar)
-        features_t_examplar_norm=[self.student.memory1(features_t_examplar[0]),
-                                  self.student.memory2(features_t_examplar[1]),
-                                  self.student.memory3(features_t_examplar[2])]
-        # ! End Normality embedding
-        #! Normality recall and distillation
+        features_t_examplar = [features_t_examplar[1],features_t_examplar[2]]
+        features_t_examplar_norm=[self.student.memory2(features_t_examplar[0]),
+                                  self.student.memory1(features_t_examplar[1])]
+
         features_t = self.teacher(img)
         embed=self.bn(features_t)
         features_s=self.student(embed)
         
-        return features_s,features_t
+        return features_s,features_t,features_t_examplar,features_t_examplar_norm
 
 if __name__ == "__main__":
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
