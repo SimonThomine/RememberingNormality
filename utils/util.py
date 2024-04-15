@@ -67,3 +67,54 @@ def loadWeights(model,model_dir,alias):
         param.requires_grad = False
     return model
 
+
+from datasets.mvtec import MVTecDataset
+from datasets.visa import VisaDatasetAnomaly,VisaDatasetNormal
+
+
+def load_dataset(trainer):
+    kwargs = ({"num_workers": 8, "pin_memory": True} if torch.cuda.is_available() else {})
+    
+    if (trainer.dataset == "mvtec"):
+        
+        train_dataset = MVTecDataset(trainer.data_path,class_name=trainer.obj,
+            is_train=True,resize=trainer.img_resize,cropsize=trainer.img_cropsize)
+        
+        img_nums = len(train_dataset)
+        valid_num = int(img_nums * trainer.validation_ratio)
+        train_num = img_nums - valid_num
+        train_data, val_data = torch.utils.data.random_split(
+            train_dataset, [train_num, valid_num]
+        )
+        
+        
+        test_dataset = MVTecDataset(trainer.data_path,class_name=trainer.obj,
+            is_train=False,resize=trainer.img_resize,cropsize=trainer.img_cropsize)
+        
+        
+    if (trainer.dataset == "visa"):
+        train_dataset = VisaDatasetNormal(trainer.data_path,class_name=trainer.obj,
+            resize=trainer.img_resize,cropsize=trainer.img_cropsize)
+        
+        test_num=100
+        train_val_num = len(train_dataset)-test_num
+        
+        valid_num = int(train_val_num * trainer.validation_ratio)
+        train_num = train_val_num - valid_num
+        train_data, val_data,test_dataNormal = torch.utils.data.random_split(
+            train_dataset, [train_num, valid_num,test_num]
+        )
+        
+        test_dataAnomaly = VisaDatasetAnomaly(trainer.data_path,class_name=trainer.obj,
+            resize=trainer.img_resize,cropsize=trainer.img_cropsize)
+        test_dataset = torch.utils.data.ConcatDataset([test_dataNormal,test_dataAnomaly])
+        
+        
+        
+    trainer.train_loader = torch.utils.data.DataLoader(train_data, batch_size=trainer.batch_size, shuffle=True, **kwargs)
+    trainer.val_loader = torch.utils.data.DataLoader(val_data, batch_size=trainer.batch_size, shuffle=True, **kwargs)
+
+
+    trainer.train_examplar_loader = torch.utils.data.DataLoader(train_data, batch_size=trainer.n_embed, shuffle=True, **kwargs)
+    trainer.val_examplar_loader = torch.utils.data.DataLoader(val_data, batch_size=trainer.n_embed, shuffle=True, **kwargs)
+    trainer.test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False, **kwargs)

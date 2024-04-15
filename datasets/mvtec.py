@@ -7,14 +7,14 @@ from torchvision import transforms as T
 
 class MVTecDataset(Dataset):
     def __init__(self, dataset_path='../datasets', class_name='bottle', is_train=True,
-                 resize=224, cropsize=224): #was 256
+                 resize=256, cropsize=256): 
         self.dataset_path = dataset_path
         self.class_name = class_name
         self.is_train = is_train
         self.resize = resize
         self.cropsize = cropsize
 
-        self.x, self.y, self.mask = self.load_modified_dataset_folder()
+        self.x, self.y, self.mask = self.load_dataset_folder()
 
 
         self.transform_x = T.Compose([T.Resize(resize),                   
@@ -43,7 +43,7 @@ class MVTecDataset(Dataset):
     def __len__(self):
         return len(self.x)
 
-    def load_modified_dataset_folder(self):
+    def load_dataset_folder(self):
         phase = 'train' if self.is_train else 'test'
         x, y, mask = [], [], []
 

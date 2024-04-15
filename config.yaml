@@ -1,6 +1,7 @@
-data_path: "../../datasets/MVTEC"
+data_path: "../../datasets/VisA"
+dataset : "visa" # or "visa"
 backbone: resnet18 # or wide_resnet50_2
-obj: wood
+obj: candle #wood
 phase: train
 save_path: "./results"
 TrainingData:

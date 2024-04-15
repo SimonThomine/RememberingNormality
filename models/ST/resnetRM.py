@@ -66,7 +66,7 @@ class ResNet(nn.Module):
     def _make_layer(self, block: Type[Union[BasicBlock, Bottleneck]], planes: int, blocks: int,
                     stride: int = 1, dilate: bool = False,firstLayer: bool = False) -> nn.Sequential:
         if (not firstLayer):
-            inplanes=self.inplanes*2 # add this *2
+            inplanes=self.inplanes*2 
         else :
             inplanes=self.inplanes
             

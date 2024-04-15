@@ -4,7 +4,7 @@ import numpy as np
 import torch
 from tqdm import tqdm
 from datasets.mvtec import MVTecDataset
-from utils.util import  AverageMeter,readYamlConfig,computeAUROC,loadWeights
+from utils.util import  AverageMeter,readYamlConfig,computeAUROC,loadWeights,load_dataset
 from utils.functions import (
     cal_loss,
     cal_loss_cosine,
@@ -20,6 +20,7 @@ class NetTrainer:
         self.device = device
         self.validation_ratio = 0.2
         self.data_path = data['data_path']
+        self.dataset=data['dataset']
         self.obj = data['obj']
         self.img_resize = data['TrainingData']['img_size']
         self.img_cropsize = data['TrainingData']['crop_size']
@@ -35,37 +36,12 @@ class NetTrainer:
         self.modelName = data['backbone']
                         
         self.load_model()
-        self.load_dataset()
+        load_dataset(self)
         
         self.optimizer = torch.optim.Adam(list(self.student.parameters())+list(self.bn.parameters()), lr=self.lr, betas=(0.5, 0.999)) 
         
         self.scheduler = torch.optim.lr_scheduler.OneCycleLR(self.optimizer,max_lr=self.lr*10,epochs=self.num_epochs,steps_per_epoch=len(self.train_loader))
         
-
-    def load_dataset(self):
-        kwargs = (
-            {"num_workers": 8, "pin_memory": True} if torch.cuda.is_available() else {}
-        )
-        train_dataset = MVTecDataset(
-            self.data_path,
-            class_name=self.obj,
-            is_train=True,
-            resize=self.img_resize,
-            cropsize=self.img_cropsize,
-        )
-        img_nums = len(train_dataset)
-        valid_num = int(img_nums * self.validation_ratio)
-        train_num = img_nums - valid_num
-        train_data, val_data = torch.utils.data.random_split(
-            train_dataset, [train_num, valid_num]
-        )
-        self.train_loader = torch.utils.data.DataLoader(train_data, batch_size=self.batch_size, shuffle=True, **kwargs)
-        self.val_loader = torch.utils.data.DataLoader(val_data, batch_size=self.batch_size, shuffle=True, **kwargs)
-
-    
-        self.train_examplar_loader = torch.utils.data.DataLoader(train_data, batch_size=self.n_embed, shuffle=True, **kwargs)
-        self.val_examplar_loader = torch.utils.data.DataLoader(val_data, batch_size=self.n_embed, shuffle=True, **kwargs)
-
 
     def load_model(self):
         print("loading and training SingleNet")
@@ -167,22 +143,12 @@ class NetTrainer:
         self.student=loadWeights(self.student,self.model_dir,"student.pth")
         self.bn=loadWeights(self.bn,self.model_dir,"bn.pth")
         
-        kwargs = (
-            {"num_workers": 4, "pin_memory": True} if torch.cuda.is_available() else {}
-        )
-        test_dataset = MVTecDataset(
-            self.data_path,
-            class_name=self.obj,
-            is_train=False,
-            resize=self.img_resize,
-            cropsize=self.img_cropsize,
-        )
-        test_loader = torch.utils.data.DataLoader(test_dataset, batch_size=1, shuffle=False, **kwargs)
+
         scores = []
         test_imgs = []
         gt_list = []
-        progressBar = tqdm(test_loader)
-        for image, label, _ in test_loader:
+        progressBar = tqdm(self.test_loader)
+        for image, label, _ in self.test_loader:
             test_imgs.extend(image.cpu().numpy())
             gt_list.extend(label.cpu().numpy())
             
