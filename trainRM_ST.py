@@ -12,7 +12,7 @@ from utils.functions import (
     cal_anomaly_maps
 )
 from models.ST.teacherST import wide_resnet50_2,resnet18
-from models.ST.resnetRM import resnet18Memory,wide_resnet50_2Memory
+from models.ST.resnetRM import resnet18Memory,wide_resnet50_2Memory,resnet50Memory
 
 
 class NetTrainer:          
@@ -75,7 +75,7 @@ class NetTrainer:
             self.student=resnet18Memory(embedDim=self.embedDim).to(self.device)
         elif self.modelName == "wide_resnet50_2":
             self.teacher=wide_resnet50_2(pretrained=True).to(self.device)
-            self.student=wide_resnet50_2Memory(embedDim=self.embedDim).to(self.device)
+            self.student=resnet50Memory(embedDim=self.embedDim).to(self.device) # ! cf Supplementary material
         else : 
             print("Invalid/unconfigured model name")
             exit()

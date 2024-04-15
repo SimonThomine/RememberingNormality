@@ -2,15 +2,15 @@
   <h1><center> Remembering Normality </center></h1>
 </p>
 
-## Unofficial implementation of the paper : "Remembering Normality: Memory-guided Knowledge Distillation for Unsupervised Anomaly Detection"
-[Article](https://openaccess.thecvf.com/content/ICCV2023/papers/Gu_Remembering_Normality_Memory-guided_Knowledge_Distillation_for_Unsupervised_Anomaly_Detection_ICCV_2023_paper.pdf) 
+## Unofficial implementation of the paper : "Remembering Normality: Memory-guided Knowledge Distillation for Unsupervised Anomaly Detection" [Article](https://openaccess.thecvf.com/content/ICCV2023/papers/Gu_Remembering_Normality_Memory-guided_Knowledge_Distillation_for_Unsupervised_Anomaly_Detection_ICCV_2023_paper.pdf)
+ 
 
 
 <p align="left">
   <img width="700" height="320" src="RememberingNormality.png">
 </p>
 
-
+We designed the code following the guidelines of the official [Paper](https://openaccess.thecvf.com/content/ICCV2023/papers/Gu_Remembering_Normality_Memory-guided_Knowledge_Distillation_for_Unsupervised_Anomaly_Detection_ICCV_2023_paper.pdf) and its [Supplementary materials](https://openaccess.thecvf.com/content/ICCV2023/supplemental/Gu_Remembering_Normality_Memory-guided_ICCV_2023_supplemental.pdf)
 
 ## Getting Started
 
@@ -26,12 +26,12 @@ $ pip install -r requirements.txt
 To run the code, please download the MVTEC AD dataset and add the path in the config.yaml file 
 Link to download the dataset : https://www.mvtec.com/company/research/datasets/mvtec-ad 
 
-To run train and test the model : 
+To run train and test the model :  
 With STPM backbone ([Article](https://arxiv.org/pdf/2103.04257v2.pdf))
 ```
 python trainRM_ST.py  
 ```
-With RD backbone ([Article1](https://arxiv.org/pdf/2201.10703.pdf))
+With RD backbone ([Article](https://arxiv.org/pdf/2201.10703.pdf))
 ```
 python trainRM_RD.py  
 ```

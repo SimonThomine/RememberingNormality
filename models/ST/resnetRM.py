@@ -38,15 +38,14 @@ class ResNet(nn.Module):
         self.bn1 = norm_layer(self.inplanes)
         self.relu = nn.ReLU(inplace=True)
         self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
-        self.layer1 = self._make_layer(block, 64, layers[0])
+        self.layer1 = self._make_layer(block, 64, layers[0],firstLayer=True)
         self.layer2 = self._make_layer(block, 128, layers[1], stride=2,
                                        dilate=replace_stride_with_dilation[0])
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2,
                                        dilate=replace_stride_with_dilation[1])
 
-        # ! New memory module
         
-        self.memory0 = memoryModule(L=embedDim,channel=64) #! not sure, ask authors ? 
+        #self.memory0 = memoryModule(L=embedDim,channel=64) # ! cf Supplementary material
         
         self.memory1 = memoryModule(L=embedDim,channel=64)
         self.memory2=  memoryModule(L=embedDim,channel=128)
@@ -67,8 +66,12 @@ class ResNet(nn.Module):
                     nn.init.constant_(m.bn2.weight, 0)  # type: ignore[arg-type]
 
     def _make_layer(self, block: Type[Union[BasicBlock, Bottleneck]], planes: int, blocks: int,
-                    stride: int = 1, dilate: bool = False) -> nn.Sequential:
-        inplanes=self.inplanes*2 # add this *2
+                    stride: int = 1, dilate: bool = False,firstLayer: bool = False) -> nn.Sequential:
+        if (not firstLayer):
+            inplanes=self.inplanes*2 # add this *2
+        else :
+            inplanes=self.inplanes
+            
         norm_layer = self._norm_layer
         downsample = None
         previous_dilation = self.dilation
@@ -77,12 +80,12 @@ class ResNet(nn.Module):
             stride = 1
         if stride != 1 or inplanes != planes * block.expansion: 
             downsample = nn.Sequential(
-                conv1x1(inplanes, planes * block.expansion, stride), # add *2
+                conv1x1(inplanes, planes * block.expansion, stride), 
                 norm_layer(planes * block.expansion),
             )
 
         layers = []
-        layers.append(block(inplanes, planes, stride, downsample, self.groups, # add *2
+        layers.append(block(inplanes, planes, stride, downsample, self.groups, 
                             self.base_width, previous_dilation, norm_layer))
         self.inplanes = planes * block.expansion
         for _ in range(1, blocks):
@@ -93,17 +96,16 @@ class ResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def _forward_impl(self, x: Tensor) -> Tensor:
-        # See note [TorchScript super()]
         x = self.conv1(x)
         x = self.bn1(x)
         x = self.relu(x)
         x = self.maxpool(x)
         
-        # ! memory module here ?
-        x_mem=self.memory0(x)
-        x_cat=torch.cat((x,x_mem),1)
+        # ! # ! cf Supplementary material
+        # x_mem=self.memory0(x)
+        # x_cat=torch.cat((x,x_mem),1)
         
-        feature_a = self.layer1(x_cat)
+        feature_a = self.layer1(x) 
         feature_mem_a = self.memory1(feature_a)
         feature_a_cat=torch.cat((feature_a,feature_mem_a),1)
         
