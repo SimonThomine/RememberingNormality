@@ -5,7 +5,7 @@ from torch.utils.data import Dataset
 from torchvision import transforms as T
 
 
-class MVTecDataset(Dataset):
+class MVTec3dDataset(Dataset):
     def __init__(self, dataset_path='../datasets', class_name='bottle', is_train=True,
                  resize=256, cropsize=256): 
         self.dataset_path = dataset_path
@@ -48,29 +48,32 @@ class MVTecDataset(Dataset):
         x, y, mask = [], [], []
 
         img_dir = os.path.join(self.dataset_path, self.class_name, phase)
-        gt_dir = os.path.join(self.dataset_path, self.class_name, 'ground_truth')
-
         img_types = sorted(os.listdir(img_dir))
         for img_type in img_types:
-            img_type_dir = os.path.join(img_dir, img_type)
+            img_type_dir = os.path.join(img_dir, img_type,'rgb')
+            mask_type_dir = os.path.join(img_dir, img_type,'gt')
             if not os.path.isdir(img_type_dir):
                 continue
+            
             img_fpath_list = sorted([os.path.join(img_type_dir, f)
                                      for f in os.listdir(img_type_dir)
                                      if (f.endswith('.png') or f.endswith('.jpg')or f.endswith('.tif'))])
+            
             x.extend(img_fpath_list)
+            
+            
 
             if img_type == 'good':
                 y.extend([0] * len(img_fpath_list))
                 mask.extend([None] * len(img_fpath_list))
             else :
                 y.extend([1] * len(img_fpath_list))
-                gt_type_dir = os.path.join(gt_dir, img_type)
-                img_fname_list = [os.path.splitext(os.path.basename(f))[0] for f in img_fpath_list]
-                gt_fpath_list = [os.path.join(gt_type_dir, img_fname + '_mask.png')
-                                 for img_fname in img_fname_list]
-                mask.extend(gt_fpath_list)
-
+                mask_fpath_list = sorted([os.path.join(mask_type_dir, f)
+                                     for f in os.listdir(mask_type_dir)
+                                     if (f.endswith('.png'))])
+                mask.extend(mask_fpath_list)
+                
+            
         assert len(x) == len(y), 'number of x and y should be same'
 
         return list(x), list(y), list(mask)

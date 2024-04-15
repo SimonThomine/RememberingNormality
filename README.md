@@ -39,7 +39,7 @@ python trainRM_RD.py
 To modify the object categories or hyperparameters, you can modify the config.yaml file.
 
 - `data_path` (STR): The path to the dataset
-- `dataset` (STR): The dataset used (mvtec or visa)
+- `dataset` (STR): The dataset used (mvtec, visa or mvtec3d)
 - `backbone` (STR): The name of the model backbone (either resnet18 or wide_resnet50_2)
 - `obj` (STR): The object category
 - `phase` (STR): Either train or test
@@ -60,7 +60,8 @@ To modify the object categories or hyperparameters, you can modify the config.ya
 - [x] Implement cosine similarity for score calculation
 - [x] Implement RD
 - [x] Implement VisA dataset
-- [ ] Implement MVTec 3D-AD and eyecandies datasets
+- [x] Implement MVTec 3D-AD dataset
+- [ ] Implement eyecandies datasets
 - [ ] Implement visualisation
 
 
