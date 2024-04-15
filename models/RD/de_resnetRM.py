@@ -38,10 +38,11 @@ class ResNet(nn.Module):
                                        dilate=replace_stride_with_dilation[0])
         self.layer3 = self._make_layer(block, 64, layers[2], stride=2,
                                        dilate=replace_stride_with_dilation[1])
-        # ! NEW
+        
+        
+        self.memory0 = memoryModule(L=embedDim,channel=512) # ! cf Supplementary material (3 memory modules)
         self.memory1 = memoryModule(L=embedDim,channel=256)
         self.memory2=  memoryModule(L=embedDim,channel=128)
-        # ! FIN NEW
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):
@@ -59,7 +60,7 @@ class ResNet(nn.Module):
 
     def _make_layer(self, block: Type[Union[deBasicBlock, deBottleneck]], planes: int, blocks: int,
                     stride: int = 1, dilate: bool = False) -> nn.Sequential:
-        inplanes=self.inplanes*2 if self.inplanes!=512 else self.inplanes # add this *2
+        inplanes=self.inplanes*2 #if self.inplanes!=512 else self.inplanes # add this *2
         norm_layer = self._norm_layer
         upsample = None
         previous_dilation = self.dilation
@@ -84,7 +85,11 @@ class ResNet(nn.Module):
         return nn.Sequential(*layers)
 
     def _forward_impl(self, x: Tensor) -> Tensor:
-        feature_a = self.layer1(x)  # 512*8*8->256*16*16
+        
+        x_mem=self.memory0(x)
+        x_cat=torch.cat((x,x_mem),1)
+        
+        feature_a = self.layer1(x_cat)  # 512*8*8->256*16*16
         feature_mem_a = self.memory1(feature_a)
         feature_a_cat=torch.cat((feature_a,feature_mem_a),1)
         
