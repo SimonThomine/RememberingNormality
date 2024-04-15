@@ -126,7 +126,7 @@ class ResNet(nn.Module):
         feature_d = self.layer4(feature_c)
 
 
-        return [feature_a, feature_b, feature_c]
+        return [feature_a, feature_b, feature_c,feature_d]
 
     def forward(self, x: Tensor) -> Tensor:
         return self._forward_impl(x)

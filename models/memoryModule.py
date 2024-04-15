@@ -9,7 +9,6 @@ class memoryModule(nn.Module):
         self.keys=torch.randn(L,channel).to('cuda')
         self.values=torch.randn(L,channel).to('cuda')
         
-        self.cosSim = nn.CosineSimilarity(dim=1, eps=1e-6)
         self.softmax = nn.Softmax(dim=1)
         self.channel=channel
     

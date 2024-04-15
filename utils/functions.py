@@ -49,7 +49,7 @@ def cal_loss_orth(student,rd=False):
 @torch.no_grad()
 def cal_anomaly_maps(fs_list, ft_list, out_size):
     anomaly_map = 0
-    for i in range(len(ft_list)):
+    for i in range(len(fs_list)):
         fs = fs_list[i]
         ft = ft_list[i]
         _, _, h, w = fs.shape

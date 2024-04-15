@@ -44,9 +44,7 @@ class ResNet(nn.Module):
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2,
                                        dilate=replace_stride_with_dilation[1])
 
-        
-        #self.memory0 = memoryModule(L=embedDim,channel=64) # ! cf Supplementary material
-        
+                
         self.memory1 = memoryModule(L=embedDim,channel=64)
         self.memory2=  memoryModule(L=embedDim,channel=128)
         
@@ -101,10 +99,7 @@ class ResNet(nn.Module):
         x = self.relu(x)
         x = self.maxpool(x)
         
-        # ! # ! cf Supplementary material
-        # x_mem=self.memory0(x)
-        # x_cat=torch.cat((x,x_mem),1)
-        
+
         feature_a = self.layer1(x) 
         feature_mem_a = self.memory1(feature_a)
         feature_a_cat=torch.cat((feature_a,feature_mem_a),1)
