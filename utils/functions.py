@@ -33,11 +33,11 @@ def cal_loss_cosine(fs_list, ft_list):
 
 def cal_loss_orth(student,rd=False):
     if rd:
-        keys=[student.memory1.keys,student.memory2.keys]
-        values=[student.memory1.values,student.memory2.values]
-    else:
         keys=[student.memory0.keys,student.memory1.keys,student.memory2.keys]
         values=[student.memory0.values,student.memory1.values,student.memory2.values]
+    else:
+        keys=[student.memory1.keys,student.memory2.keys]
+        values=[student.memory1.values,student.memory2.values]
     t_loss=0
     for key,value in zip(keys,values):
         key_norm = torch.nn.functional.normalize(key, dim=1)

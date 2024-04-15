@@ -60,7 +60,7 @@ class ResNet(nn.Module):
 
     def _make_layer(self, block: Type[Union[deBasicBlock, deBottleneck]], planes: int, blocks: int,
                     stride: int = 1, dilate: bool = False) -> nn.Sequential:
-        inplanes=self.inplanes*2 #if self.inplanes!=512 else self.inplanes # add this *2
+        inplanes=self.inplanes*2
         norm_layer = self._norm_layer
         upsample = None
         previous_dilation = self.dilation
