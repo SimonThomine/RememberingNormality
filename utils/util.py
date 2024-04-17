@@ -71,6 +71,7 @@ def loadWeights(model,model_dir,alias):
 from datasets.mvtec import MVTecDataset
 from datasets.visa import VisaDatasetAnomaly,VisaDatasetNormal
 from datasets.mvtec3d import MVTec3dDataset
+from datasets.eyecandies import EyecandiesDataset
 
 
 def load_dataset(trainer):
@@ -124,7 +125,18 @@ def load_dataset(trainer):
         
         test_dataset = MVTec3dDataset(trainer.data_path,class_name=trainer.obj,
             is_train=False,resize=trainer.img_resize,cropsize=trainer.img_cropsize)
+    
+    
+    if (trainer.dataset == "eyecandies"):
         
+        train_data = EyecandiesDataset(trainer.data_path,class_name=trainer.obj,
+            split='train',image_index=0,resize=trainer.img_resize,cropsize=trainer.img_cropsize)
+        
+        val_data = EyecandiesDataset(trainer.data_path,class_name=trainer.obj,
+            split='val',image_index=0,resize=trainer.img_resize,cropsize=trainer.img_cropsize)
+
+        test_dataset = EyecandiesDataset(trainer.data_path,class_name=trainer.obj,
+            split='test_public',image_index=0,resize=trainer.img_resize,cropsize=trainer.img_cropsize)
         
         
     trainer.train_loader = torch.utils.data.DataLoader(train_data, batch_size=trainer.batch_size, shuffle=True, **kwargs)

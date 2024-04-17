@@ -1,5 +1,5 @@
-data_path: "../../datasets/mvtec3d"
-dataset : "mvtec" # "mvtec" or "visa" or "mvtec3d"
+data_path: "../../datasets/MVTEC"
+dataset : "mvtec" # "mvtec" or "visa" or "mvtec3d" or "eyecandies"
 backbone: resnet18 # or wide_resnet50_2
 obj: wood 
 phase: train
