@@ -53,7 +53,7 @@ def computeAUROC(scores,gt_list,obj,name="base"):
     img_scores = scores.reshape(scores.shape[0], -1).max(axis=1)
     img_roc_auc = roc_auc_score(gt_list, img_scores)
     print(obj + " image"+str(name)+" ROCAUC: %.3f" % (img_roc_auc))
-    return img_roc_auc,img_scores  
+    return img_roc_auc,img_scores,scores
 
 
 def loadWeights(model,model_dir,alias):

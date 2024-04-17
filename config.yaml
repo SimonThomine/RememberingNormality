@@ -3,6 +3,7 @@ dataset : "mvtec" # "mvtec" or "visa" or "mvtec3d" or "eyecandies"
 backbone: resnet18 # or wide_resnet50_2
 obj: wood 
 phase: train
+visu: True
 save_path: "./results"
 TrainingData:
   epochs: 50

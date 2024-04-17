@@ -13,6 +13,7 @@ from utils.functions import (
 )
 from models.RD.teacherRD import wide_resnet50_2,resnet18
 from models.RD.de_resnetRM import de_resnet18,de_wide_resnet50_2
+from utils.visualization import visu
 
 
 class NetTrainer:          
@@ -33,6 +34,11 @@ class NetTrainer:
         self.lambda2 = data['TrainingData']['lambda1']
         self.model_dir = data['save_path'] + "/models" + "/" + self.obj
         os.makedirs(self.model_dir, exist_ok=True)
+        
+        self.visu=data['visu']
+        if (self.visu):
+            self.img_dir = data['save_path'] + "/images" + "/" + self.obj
+            os.makedirs(self.img_dir, exist_ok=True)
         self.modelName = data['backbone']
                         
         self.load_model()
@@ -44,7 +50,7 @@ class NetTrainer:
         
 
     def load_model(self):
-        print("loading and training SingleNet")
+        print("loading and training")
 
         if self.modelName == "resnet18":
             self.teacher,self.bn=resnet18(pretrained=True)
@@ -147,11 +153,12 @@ class NetTrainer:
         scores = []
         test_imgs = []
         gt_list = []
+        gt_mask_list = []
         progressBar = tqdm(self.test_loader)
-        for image, label, _ in self.test_loader:
+        for image, label, mask in self.test_loader:
             test_imgs.extend(image.cpu().numpy())
             gt_list.extend(label.cpu().numpy())
-            
+            gt_mask_list.append(mask.squeeze().cpu().numpy())
             image = image.to(self.device)
             with torch.set_grad_enabled(False):
                 
@@ -168,8 +175,11 @@ class NetTrainer:
         progressBar.close()
         scores = np.asarray(scores)
         gt_list = np.asarray(gt_list)
-        img_roc_auc,_=computeAUROC(scores,gt_list,self.obj,"singleNet")
+        img_roc_auc,img_scores,map_scores=computeAUROC(scores,gt_list,self.obj,"reverse distillation")
 
+        if self.visu:
+            visu(self,gt_list, img_scores, gt_mask_list, map_scores, test_imgs)
+            
         return img_roc_auc
     
     def infer(self, img,imgExamplar):

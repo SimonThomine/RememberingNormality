@@ -44,6 +44,7 @@ To modify the object categories or hyperparameters, you can modify the config.ya
 - `obj` (STR): The object category
 - `phase` (STR): Either train or test
 - `save_path` (STR): The path to save the model weights
+- `visu` (BOOL): Wheter to calculate the localization score and save images of segmentation
 - `training_data`: 
 - - `epoch` : number of epoch for training
 - - `batch_size` : the minibatch size
@@ -69,7 +70,9 @@ To download the datasets, please refer to the following links:
 - [x] Implement VisA dataset
 - [x] Implement MVTec 3D-AD dataset
 - [x] Implement eyecandies datasets
-- [ ] Implement visualisation
+- [x] Implement visualisation
+
+Feel free to ask for any improvements need in the code :)
 
 
 ## License
