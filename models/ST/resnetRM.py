@@ -44,9 +44,14 @@ class ResNet(nn.Module):
         self.layer3 = self._make_layer(block, 256, layers[2], stride=2,
                                        dilate=replace_stride_with_dilation[1])
 
-                
-        self.memory1 = memoryModule(L=embedDim,channel=64)
-        self.memory2=  memoryModule(L=embedDim,channel=128)
+    
+        if (block==BasicBlock):
+            self.memory1 = memoryModule(L=embedDim,channel=64)
+            self.memory2=  memoryModule(L=embedDim,channel=128)
+        else :
+            self.memory1 = memoryModule(L=embedDim,channel=256)
+            self.memory2=  memoryModule(L=embedDim,channel=512)
+            
         
 
         for m in self.modules():

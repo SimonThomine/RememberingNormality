@@ -40,9 +40,14 @@ class ResNet(nn.Module):
                                        dilate=replace_stride_with_dilation[1])
         
         
-        self.memory0 = memoryModule(L=embedDim,channel=512) # ! cf Supplementary material (3 memory modules)
-        self.memory1 = memoryModule(L=embedDim,channel=256)
-        self.memory2=  memoryModule(L=embedDim,channel=128)
+        if (block==deBasicBlock):
+            self.memory0 = memoryModule(L=embedDim,channel=512) 
+            self.memory1 = memoryModule(L=embedDim,channel=256)
+            self.memory2=  memoryModule(L=embedDim,channel=128)
+        else :
+            self.memory0 = memoryModule(L=embedDim,channel=2048) 
+            self.memory1 = memoryModule(L=embedDim,channel=1024)
+            self.memory2=  memoryModule(L=embedDim,channel=512)
 
         for m in self.modules():
             if isinstance(m, nn.Conv2d):

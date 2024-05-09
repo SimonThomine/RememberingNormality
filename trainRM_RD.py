@@ -56,7 +56,7 @@ class NetTrainer:
             self.teacher,self.bn=resnet18(pretrained=True)
             self.student=de_resnet18().to(self.device)
         elif self.modelName == "wide_resnet50_2":
-            self.teacher,self.bn=wide_resnet50_2(pretrained=True).to(self.device)
+            self.teacher,self.bn=wide_resnet50_2(pretrained=True)
             self.student=de_wide_resnet50_2().to(self.device)
         else : 
             print("Invalid/unconfigured model name")
