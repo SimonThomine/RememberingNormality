@@ -187,9 +187,9 @@ class NetTrainer:
         features_t_examplar = self.teacher(imgExamplar)
         features_t_examplar = [features_t_examplar[1],features_t_examplar[2],features_t_examplar[3]]
         
-        features_t_examplar_norm=[self.student.memory2(features_t_examplar[0]),
-                                  self.student.memory1(features_t_examplar[1]),
-                                  self.student.memory0(features_t_examplar[2])]
+        features_t_examplar_norm=[self.student.memory2(features_t_examplar[0],normality=True),
+                                  self.student.memory1(features_t_examplar[1],normality=True),
+                                  self.student.memory0(features_t_examplar[2],normality=True)]
 
         features_t = self.teacher(img)
         embed=self.bn(features_t)

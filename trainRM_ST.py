@@ -182,8 +182,8 @@ class NetTrainer:
         
         features_t_examplar = self.teacher.forward_normality_embedding(imgExamplar)
         features_t_examplar = [features_t_examplar[1],features_t_examplar[2]]
-        features_t_examplar_norm=[self.student.memory1(features_t_examplar[0]),
-                                  self.student.memory2(features_t_examplar[1])]
+        features_t_examplar_norm=[self.student.memory1(features_t_examplar[0],normality=True),
+                                  self.student.memory2(features_t_examplar[1],normality=True)]
 
         features_t = self.teacher(img)
         features_s=self.student(img)
